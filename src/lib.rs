@@ -1,5 +1,4 @@
 use std::cmp;
-use std::f64::consts::FRAC_PI_4;
 use stdweb::traits::IMouseEvent;
 use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
@@ -19,6 +18,13 @@ pub struct Card {
 
     /// The rotation of this card in degrees.
     rotation: f64,
+}
+
+impl Card {
+    fn rotation_handle_angle(&self) -> f64 {
+        let (width, height) = self.size;
+        (height as f64).atan2(width as f64)
+    }
 }
 
 /// A Model represents the state of the webapp.
@@ -117,7 +123,7 @@ impl Component for Model {
                     let atan_x: f64 = (cursor_x - (x + (width / 2))).into();
                     let atan_y: f64 = (cursor_y - (y + (height / 2))).into();
 
-                    self.cards[idx].rotation = atan_y.atan2(atan_x) + FRAC_PI_4;
+                    self.cards[idx].rotation = atan_y.atan2(atan_x) + card.rotation_handle_angle();
 
                     true
                 }
