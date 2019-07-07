@@ -1,0 +1,33 @@
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+.card {
+    position: absolute;
+    cursor: move;
+    display: inline-block;
+    border: 1px solid red;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+.refboard {
+    position: relative;
+    height: auto;
+    min-height: 100%;
+}
+
+.image {
+    width: 300px;
+    height: 300px;
+    background-color: red;
+}
