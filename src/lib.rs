@@ -2,6 +2,9 @@ use std::cmp;
 use stdweb::traits::IMouseEvent;
 use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
 
+const HANDLE_RADIUS_PX: i32 = 5;
+const MIN_CARD_SIZE_PX: i32 = 2 * HANDLE_RADIUS_PX + 1;
+
 /// A Card is a transformable image displayed on the Refboard canvas.
 #[derive(PartialEq)]
 pub struct Card {
@@ -18,6 +21,9 @@ pub struct Card {
 
     /// The rotation of this card in degrees.
     rotation: f64,
+
+    /// The Z-index of this card.
+    z: i32,
 }
 
 impl Card {
@@ -57,6 +63,7 @@ pub enum DragState {
 pub enum Msg {
     CreateCard(String, (i32, i32)),
     RemoveCard(u32),
+    ResetRotation(usize),
     StartDraggingScaleHandle(usize),
     StartDraggingRotateHandle(usize),
     StartDraggingCard(usize),
@@ -76,12 +83,14 @@ impl Component for Model {
                     position: (0, 0),
                     size: (300, 300),
                     rotation: 0.0,
+                    z: 10,
                 },
                 Card {
                     image: "".to_string(),
                     position: (400, 0),
                     size: (300, 300),
                     rotation: 0.0,
+                    z: 1,
                 },
             ],
             drag_state: DragState::None,
@@ -102,6 +111,10 @@ impl Component for Model {
                 self.drag_state = DragState::MoveRotateHandle(idx);
                 true
             }
+            Msg::ResetRotation(idx) => {
+                self.cards[idx].rotation = 0.0;
+                true
+            }
             Msg::Drag(delta, pos) => match self.drag_state {
                 DragState::MoveCard(idx) => {
                     self.cards[idx].position.0 += delta.0;
@@ -110,8 +123,10 @@ impl Component for Model {
                 }
                 DragState::MoveScaleHandle(idx) => {
                     // TODO: Handle rotation
-                    self.cards[idx].size.0 = cmp::max(0, self.cards[idx].size.0 + delta.0);
-                    self.cards[idx].size.1 = cmp::max(0, self.cards[idx].size.1 + delta.1);
+                    self.cards[idx].size.0 =
+                        cmp::max(MIN_CARD_SIZE_PX, self.cards[idx].size.0 + delta.0);
+                    self.cards[idx].size.1 =
+                        cmp::max(MIN_CARD_SIZE_PX, self.cards[idx].size.1 + delta.1);
                     true
                 }
                 DragState::MoveRotateHandle(idx) => {
@@ -157,17 +172,18 @@ impl Model {
         match card_idx {
             Some(idx) => html! {
                 <div class="unselectable card",
-                        style=format!("left: {}px; top: {}px; width: {}px; height: {}px; transform: rotate({}rad)", card.position.0, card.position.1, card.size.0, card.size.1, card.rotation),>
+                        style=format!("left: {}px; top: {}px; width: {}px; height: {}px; transform: rotate({}rad); z-index: {};", card.position.0, card.position.1, card.size.0, card.size.1, card.rotation, card.z),>
 
                     // Transformation handles
 
                     <div class="scaling-handle",
-                        style="right: -5px; bottom: -5px;",
+                        style=format!("right: -{}px; bottom: -{}px;", HANDLE_RADIUS_PX, HANDLE_RADIUS_PX),
                         onmousedown=|_| Msg::StartDraggingScaleHandle(idx),></div>
 
                     <div class="rotation-handle",
-                        style="right: -5px; top: -5px;",
-                        onmousedown=|_| Msg::StartDraggingRotateHandle(idx),></div>
+                        style=format!("right: -{}px; top: -{}px;", HANDLE_RADIUS_PX, HANDLE_RADIUS_PX),
+                        onmousedown=|_| Msg::StartDraggingRotateHandle(idx),
+                        oncontextmenu=|_| Msg::ResetRotation(idx),></div>
 
                     // Actual image body
 
