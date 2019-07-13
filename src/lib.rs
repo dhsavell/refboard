@@ -83,7 +83,7 @@ impl Component for Model {
                     position: (0, 0),
                     size: (300, 300),
                     rotation: 0.0,
-                    z: 10,
+                    z: 0,
                 },
                 Card {
                     image: "".to_string(),
@@ -101,6 +101,16 @@ impl Component for Model {
         match msg {
             Msg::StartDraggingCard(idx) => {
                 self.drag_state = DragState::MoveCard(idx);
+                let selected_card_z = self.cards[idx].z;
+
+                for mut card in &mut self.cards {
+                    if card.z >= selected_card_z {
+                        card.z -= 1;
+                    }
+                }
+
+                self.cards[idx].z = (self.cards.len() - 1) as i32;
+
                 true
             }
             Msg::StartDraggingScaleHandle(idx) => {
@@ -178,17 +188,20 @@ impl Model {
 
                     <div class="scaling-handle",
                         style=format!("right: -{}px; bottom: -{}px;", HANDLE_RADIUS_PX, HANDLE_RADIUS_PX),
-                        onmousedown=|_| Msg::StartDraggingScaleHandle(idx),></div>
+                        onmousedown=|_| Msg::StartDraggingScaleHandle(idx),
+                        ondragstart=|_| Msg::StartDraggingScaleHandle(idx),></div>
 
                     <div class="rotation-handle",
                         style=format!("right: -{}px; top: -{}px;", HANDLE_RADIUS_PX, HANDLE_RADIUS_PX),
                         onmousedown=|_| Msg::StartDraggingRotateHandle(idx),
+                        ondragstart=|_| Msg::StartDraggingRotateHandle(idx),
                         oncontextmenu=|_| Msg::ResetRotation(idx),></div>
 
                     // Actual image body
 
                     <div class="image",
                         onmousedown=|_| Msg::StartDraggingCard(idx),
+                        ondragstart=|_| Msg::StartDraggingCard(idx),
                         style=format!("width: {}px; height: {}px", card.size.0, card.size.1),></div>
                 </div>
             },
