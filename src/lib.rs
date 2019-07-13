@@ -127,20 +127,23 @@ impl Component for Model {
             }
             Msg::Drag(delta, pos) => match self.drag_state {
                 DragState::MoveCard(idx) => {
-                    self.cards[idx].position.0 += delta.0;
-                    self.cards[idx].position.1 += delta.1;
+                    let card = &mut self.cards[idx];
+
+                    card.position.0 += delta.0;
+                    card.position.1 += delta.1;
+
                     true
                 }
                 DragState::MoveScaleHandle(idx) => {
-                    // TODO: Handle rotation
-                    self.cards[idx].size.0 =
-                        cmp::max(MIN_CARD_SIZE_PX, self.cards[idx].size.0 + delta.0);
-                    self.cards[idx].size.1 =
-                        cmp::max(MIN_CARD_SIZE_PX, self.cards[idx].size.1 + delta.1);
+                    let card = &mut self.cards[idx];
+
+                    card.size.0 = cmp::max(MIN_CARD_SIZE_PX, card.size.0 + delta.0);
+                    card.size.1 = cmp::max(MIN_CARD_SIZE_PX, card.size.1 + delta.1);
+
                     true
                 }
                 DragState::MoveRotateHandle(idx) => {
-                    let card = &self.cards[idx];
+                    let card = &mut self.cards[idx];
                     let (cursor_x, cursor_y) = pos;
                     let (x, y) = card.position;
                     let (width, height) = card.size;
@@ -148,7 +151,7 @@ impl Component for Model {
                     let atan_x: f64 = (cursor_x - (x + (width / 2))).into();
                     let atan_y: f64 = (cursor_y - (y + (height / 2))).into();
 
-                    self.cards[idx].rotation = atan_y.atan2(atan_x) + card.rotation_handle_angle();
+                    card.rotation = atan_y.atan2(atan_x) + card.rotation_handle_angle();
 
                     true
                 }
